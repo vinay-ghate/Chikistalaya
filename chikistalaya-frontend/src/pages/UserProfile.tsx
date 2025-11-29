@@ -1,0 +1,163 @@
+import { useState, useEffect } from "react";
+import Sidebar from "../components/ui/Layout/SideBar";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { getAuth } from "firebase/auth";
+import { User, Settings, Heart, Ruler, Weight, Calendar, AlertCircle, Activity } from 'lucide-react';
+
+export default function UserProfile() {
+  const [activeTab, setActiveTab] = useState("profile");
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    bloodGroup: "",
+    allergies: "",
+    heartRate: "",
+    bloodPressure: "",
+    height: "",
+    weight: "",
+    dob: "",
+  });
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const fetchUserData = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      const response = await fetch("https://curo-156q.onrender.com/api/user-profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      if (response.ok) {
+        setUserData(result.user);
+      } else {
+        console.error("Error fetching user data:", result.error);
+      }
+    } else {
+      console.error("No user is signed in.");
+    }
+  };
+
+  const updateUserData = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      const response = await fetch("https://curo-156q.onrender.com/api/update-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(userData),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        alert("Profile updated successfully!");
+        setIsEditing(false);
+      } else {
+        console.error("Error updating profile:", result.error);
+      }
+    } else {
+      console.error("No user is signed in.");
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const getFieldIcon = (key: keyof typeof userData) => {
+    const icons = {
+      name: <User className="w-5 h-5 text-blue-500" />,
+      email: <Settings className="w-5 h-5 text-purple-500" />,
+      bloodGroup: <Activity className="w-5 h-5 text-red-500" />,
+      allergies: <AlertCircle className="w-5 h-5 text-yellow-500" />,
+      heartRate: <Heart className="w-5 h-5 text-red-500" />,
+      bloodPressure: <Activity className="w-5 h-5 text-green-500" />,
+      height: <Ruler className="w-5 h-5 text-indigo-500" />,
+      weight: <Weight className="w-5 h-5 text-blue-500" />,
+      dob: <Calendar className="w-5 h-5 text-purple-500" />,
+    };
+    return icons[key] || null;
+  };
+
+  return (
+    <div className="flex h-screen w-screen bg-gradient-to-br from-purple-900 via-purple-950 to-indigo-950">
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      <main className="flex-1 flex items-center justify-center p-0">
+        <div className="max-w-4xl mx-auto">
+          <header className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              User Profile
+            </h1>
+            <p className="text-purple-200 max-w-2xl mx-auto">
+              Manage your personal information and health data in one secure place.
+            </p>
+          </header>
+
+          <Card className="p-8 shadow-lg bg-purple-900/80 backdrop-blur-sm border-purple-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.keys(userData).map((key) => (
+                <div key={key} className="relative group">
+                  <div className="flex items-center space-x-2 mb-1.5">
+                    {getFieldIcon(key as keyof typeof userData)}
+                    <label className="block text-sm font-medium text-purple-200 capitalize">
+                      {key.replace(/([A-Z])/g, " $1")}
+                    </label>
+                  </div>
+                  <Input
+                    type={key === "dob" ? "date" : "text"}
+                    value={userData[key as keyof typeof userData]}
+                    disabled={!isEditing}
+                    className={`mt-1 transition-all duration-200 ${isEditing
+                        ? "border-purple-300 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500 bg-purple-800/50 text-white"
+                        : "bg-purple-800/30 text-gray-300 border-transparent"
+                      } ${!isEditing && "cursor-not-allowed opacity-75"
+                      }`}
+                    onChange={(e) =>
+                      setUserData({ ...userData, [key]: e.target.value })
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end mt-8 space-x-4">
+              {isEditing ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                    className="px-6 hover:bg-purple-800 text-white border-purple-600 transition-colors duration-200"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={updateUserData}
+                    className="px-6 bg-purple-600 hover:bg-purple-700 text-white transition-colors duration-200"
+                  >
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="px-6 bg-purple-600 hover:bg-purple-700 text-white transition-colors duration-200"
+                >
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}
