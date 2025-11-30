@@ -6,7 +6,10 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build the Frontend
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS frontend-builder
+# -----------------------------------------------------------------------------
+# Stage 1: Build the Frontend
+# -----------------------------------------------------------------------------
+FROM node:20-slim AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -20,21 +23,18 @@ RUN npm install
 COPY chikistalaya-frontend/ .
 
 # Build the frontend (Vite produces 'dist' folder)
-# Note: We use a placeholder for VITE_BACKEND_URL because environment variables
-# are baked in at build time. For a Docker setup, we often serve the frontend
-# from the same origin as the backend, so a relative path or runtime injection is better.
-# However, for simplicity here, we assume the backend serves the frontend.
 RUN npm run build
 
 # -----------------------------------------------------------------------------
 # Stage 2: Setup the Backend & Serve Frontend
 # -----------------------------------------------------------------------------
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
-# Install gcompat for onnxruntime (required for Alpine Linux)
-RUN apk add --no-cache gcompat
+# Install dependencies required for onnxruntime or other native modules if needed
+# (Debian-based images usually have better compatibility out of the box than Alpine)
+# RUN apt-get update && apt-get install -y ...
 
 # Copy backend package files
 COPY backend/package*.json ./backend/
