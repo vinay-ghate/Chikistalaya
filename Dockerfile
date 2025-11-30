@@ -3,7 +3,10 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build the Frontend
 # -----------------------------------------------------------------------------
-FROM node:18-alpine AS frontend-builder
+# -----------------------------------------------------------------------------
+# Stage 1: Build the Frontend
+# -----------------------------------------------------------------------------
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -26,7 +29,7 @@ RUN npm run build
 # -----------------------------------------------------------------------------
 # Stage 2: Setup the Backend & Serve Frontend
 # -----------------------------------------------------------------------------
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -35,7 +38,7 @@ COPY backend/package*.json ./backend/
 
 # Install backend dependencies
 WORKDIR /app/backend
-RUN npm install --production
+RUN npm install --production --legacy-peer-deps
 
 # Copy the rest of the backend source code
 COPY backend/ .
