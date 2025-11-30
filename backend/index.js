@@ -166,6 +166,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Serve static files from the 'public' directory (where frontend build will be)
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Middleware to verify Firebase token
 import { isFirebaseInitialized } from './firebaseAdmin.js';
 
@@ -926,6 +932,12 @@ app.get("/api/protected", authenticateUser, (req, res) => {
 });
 
 const PORT = process.env.PORT;
+// Catch-all handler for any request that doesn't match an API route
+// This sends the React app's index.html, allowing React Router to handle the routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
