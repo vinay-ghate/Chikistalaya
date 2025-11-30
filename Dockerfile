@@ -33,6 +33,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install gcompat for onnxruntime (required for Alpine Linux)
+RUN apk add --no-cache gcompat
+
 # Copy backend package files
 COPY backend/package*.json ./backend/
 
