@@ -67,7 +67,7 @@ export default function MediChat() {
     }
     const token = await user.getIdToken();
     try {
-      const response = await fetch("http://localhost:5000/api/health-records", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/health-records`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -96,7 +96,7 @@ export default function MediChat() {
           .map((record) => `${record.type}: ${JSON.stringify(record.details)}`)
           .join("\n");
 
-        const response = await fetch("http://localhost:5000/api/medi-chat", {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/medi-chat`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -278,7 +278,7 @@ export default function MediChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
-              className="flex-grow rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-grow rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder:text-gray-500"
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
             />
             <Button

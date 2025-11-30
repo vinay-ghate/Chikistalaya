@@ -76,8 +76,7 @@ const facilityTypes = [
 
 const RadiusSelector = ({ radius, setRadius }: { radius: number; setRadius: (radius: number) => void }) => (
     <select
-        className="border rounded-lg p-2"
-        style={{ backgroundColor: 'white' }} // Added style for white background
+        className="border border-gray-300 rounded-lg p-2 text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         value={radius}
         onChange={(e) => setRadius(Number(e.target.value))}
     >
@@ -98,17 +97,15 @@ interface Specialty {
 const SpecialtyButton = ({ specialty, isSelected, onClick }: { specialty: Specialty; isSelected: boolean; onClick: () => void }) => (
     <button
         onClick={onClick}
-        className={`group p-6 rounded-xl border-2 transition-all duration-300 ${
-            isSelected
-                ? 'border-blue-500 bg-blue-50 shadow-md'
-                : 'border-gray-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md'
-        } bg-white`}
+        className={`group p-6 rounded-xl border-2 transition-all duration-300 ${isSelected
+            ? 'border-blue-500 bg-blue-50 shadow-md'
+            : 'border-gray-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md'
+            } bg-white`}
     >
         <div className="flex flex-col items-center space-y-3">
             <specialty.icon
-                className={`w-8 h-8 transition-colors duration-300 ${
-                    isSelected ? specialty.color : 'text-gray-400 group-hover:' + specialty.color
-                }`}
+                className={`w-8 h-8 transition-colors duration-300 ${isSelected ? specialty.color : 'text-gray-400 group-hover:' + specialty.color
+                    }`}
             />
             <span className="font-medium text-gray-900 text-sm text-center">
                 {specialty.name}
@@ -238,26 +235,29 @@ const FindServices = () => {
             if (!user) {
                 throw new Error("No logged-in user. Please sign in first.");
             }
-
             const token = await user.getIdToken();
-            const response = await fetch(
-                `https://curo-156q.onrender.com/api/maps/nearby-${type}?lat=${lat}&lng=${lng}&radius=${radius}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+
+            let endpoint = 'nearby-hospitals';
+            if (type === 'pharmacy') endpoint = 'nearby-pharmacy';
+            // For 'lab', defaulting to hospitals or we could add a specific endpoint if available.
+
+            const url = `${import.meta.env.VITE_BACKEND_URL}/api/maps/${endpoint}?lat=${lat}&lng=${lng}&radius=${radius}`;
+
+            const response = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch nearby ${type}`);
+                throw new Error('Failed to fetch places');
             }
 
             const data = await response.json();
             setPlaces(data.results || []);
             setCurrentPage(1);
         } catch (err: any) {
-            setError(err.message || `Error fetching ${type}`);
+            setError(err.message || 'Error finding places');
         } finally {
             setLoading(false);
         }
@@ -274,16 +274,15 @@ const FindServices = () => {
             if (!user) {
                 throw new Error("No logged-in user. Please sign in first.");
             }
-
             const token = await user.getIdToken();
-            const response = await fetch(
-                `https://curo-156q.onrender.com/api/maps/nearby-doctor-type?lat=${lat}&lng=${lng}&radius=${radius}&keyword=${keyword}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+
+            const url = `${import.meta.env.VITE_BACKEND_URL}/api/maps/nearby-doctor?lat=${lat}&lng=${lng}&radius=${radius}&keyword=${encodeURIComponent(keyword)}`;
+
+            const response = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             if (!response.ok) {
                 throw new Error('Failed to fetch doctors');
@@ -391,14 +390,14 @@ const FindServices = () => {
                     <div class="p-2">
                         <h3 class="font-semibold">${place.name}</h3>
                         <p class="text-sm text-gray-600">${place.vicinity}</p>
-                        ${place.rating ? 
-                            `<div class="flex items-center mt-1">
+                        ${place.rating ?
+                        `<div class="flex items-center mt-1">
                                 <span class="text-yellow-500">★</span>
                                 <span class="ml-1">${place.rating}</span>
                                 <span class="text-sm text-gray-500 ml-1">(${place.user_ratings_total} reviews)</span>
                             </div>`
-                            : ''
-                        }
+                        : ''
+                    }
                     </div>
                 `
             });
@@ -520,7 +519,7 @@ const FindServices = () => {
                         onClose={() => setSelectedPlace(null)}
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
-                        
+
                     />
                 )}
             </div>

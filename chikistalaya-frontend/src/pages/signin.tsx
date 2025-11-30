@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { auth } from '@/lib/firebase';
 import {
   createUserWithEmailAndPassword,
@@ -23,12 +24,13 @@ export default function AuthPage() {
     setIsLoading(true);
 
     const form = event.target as HTMLFormElement;
-    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
     const isLogin = form.getAttribute('data-form-type') === 'login';
 
     try {
       if (isLogin) {
+        const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+        const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+
         // Log in existing user
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -39,16 +41,37 @@ export default function AuthPage() {
           email: user.email
         }));
 
+        // Sync user with backend (ensure they exist in Supabase)
+        try {
+          await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              email: user.email,
+              name: user.displayName || user.email?.split('@')[0] || 'User'
+            }),
+          });
+        } catch (syncError) {
+          console.error("Failed to sync user with backend:", syncError);
+          // Don't block login if sync fails, but log it
+        }
+
         // (2) Navigate to /userdashboard/:uid
         navigate(`/userdashboard/${user.uid}`);
       } else {
         // Register new user
         const name = (form.elements.namedItem('name') as HTMLInputElement).value;
+        const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+        const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         // Send user data to your backend
-        await fetch('https://curo-156q.onrender.com/api/auth/register', {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -71,6 +94,8 @@ export default function AuthPage() {
         navigate(`/userdashboard/${user.uid}`);
       }
     } catch (err: any) {
+      console.error("Auth error:", err);
+      toast.error(err.message || "Authentication failed");
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +109,7 @@ export default function AuthPage() {
       const user = result.user;
 
       // Send user data to your backend
-      await fetch('https://curo-156q.onrender.com/api/auth/google', {
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,11 +131,10 @@ export default function AuthPage() {
       // (2) Navigate to /userdashboard/:uid
       navigate(`/userdashboard/${user.uid}`);
     } catch (err: any) {
-
+      console.error("Google login error:", err);
+      toast.error(err.message || "Google login failed");
     }
   };
-
-
 
   return (
     <div className="flex min-h-screen w-screen bg-gradient-to-b from-purple-900 via-purple-800 to-purple-900">
@@ -132,6 +156,7 @@ export default function AuthPage() {
                     <Label htmlFor="email" className="text-gray-300">Email</Label>
                     <Input
                       id="email"
+                      name="email"
                       type="email"
                       placeholder="m@example.com"
                       required
@@ -142,6 +167,7 @@ export default function AuthPage() {
                     <Label htmlFor="password" className="text-gray-300">Password</Label>
                     <Input
                       id="password"
+                      name="password"
                       type="password"
                       required
                       className="w-full bg-purple-800/50 border-purple-400/30 text-white focus:border-purple-300 focus:ring-purple-300"
@@ -159,18 +185,20 @@ export default function AuthPage() {
               <TabsContent value="signup" className="w-full">
                 <form data-form-type="signup" onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-300">Full Name</Label>
+                    <Label htmlFor="signup-name" className="text-gray-300">Full Name</Label>
                     <Input
-                      id="name"
+                      id="signup-name"
+                      name="name"
                       placeholder="John Doe"
                       required
                       className="w-full bg-purple-800/50 border-purple-400/30 text-white placeholder:text-purple-200 focus:border-purple-300 focus:ring-purple-300"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-300">Email</Label>
+                    <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
                     <Input
-                      id="email"
+                      id="signup-email"
+                      name="email"
                       type="email"
                       placeholder="m@example.com"
                       required
@@ -178,18 +206,20 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-gray-300">Password</Label>
+                    <Label htmlFor="signup-password" className="text-gray-300">Password</Label>
                     <Input
-                      id="password"
+                      id="signup-password"
+                      name="password"
                       type="password"
                       required
                       className="w-full bg-purple-800/50 border-purple-400/30 text-white focus:border-purple-300 focus:ring-purple-300"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="text-gray-300">Confirm Password</Label>
+                    <Label htmlFor="signup-confirm-password" className="text-gray-300">Confirm Password</Label>
                     <Input
-                      id="confirm-password"
+                      id="signup-confirm-password"
+                      name="confirm-password"
                       type="password"
                       required
                       className="w-full bg-purple-800/50 border-purple-400/30 text-white focus:border-purple-300 focus:ring-purple-300"

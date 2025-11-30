@@ -27,7 +27,7 @@ export default function UserProfile() {
     const user = auth.currentUser;
     if (user) {
       const token = await user.getIdToken();
-      const response = await fetch("https://curo-156q.onrender.com/api/user-profile", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user-profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,7 +48,7 @@ export default function UserProfile() {
     const user = auth.currentUser;
     if (user) {
       const token = await user.getIdToken();
-      const response = await fetch("https://curo-156q.onrender.com/api/update-profile", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/update-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,8 +117,8 @@ export default function UserProfile() {
                     value={userData[key as keyof typeof userData]}
                     disabled={!isEditing}
                     className={`mt-1 transition-all duration-200 ${isEditing
-                        ? "border-purple-300 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500 bg-purple-800/50 text-white"
-                        : "bg-purple-800/30 text-gray-300 border-transparent"
+                      ? "border-purple-300 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500 bg-purple-800/50 text-white"
+                      : "bg-purple-800/30 text-gray-300 border-transparent"
                       } ${!isEditing && "cursor-not-allowed opacity-75"
                       }`}
                     onChange={(e) =>

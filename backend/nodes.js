@@ -61,7 +61,7 @@ export async function retrieve(state) {
   console.log("Input state:", state);
 
   try {
-    const pineconeIndex = pinecone.Index("curo-2");
+    const pineconeIndex = pinecone.Index("chikistalaya-2");
     const embeddings = new HuggingFaceTransformersEmbeddings({
       model: "Xenova/all-MiniLM-L6-v2",
     });

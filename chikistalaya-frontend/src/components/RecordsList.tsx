@@ -52,17 +52,17 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
     return [...records].sort((a, b) => {
       const getDate = (record: Record) => {
         const details = record.details;
-        return details.consultationDate || 
-               details.surgeryDate || 
-               (details.medicines?.[0]?.startDate) ||
-               new Date().toISOString(); // fallback for records without dates
+        return details.consultationDate ||
+          details.surgeryDate ||
+          (details.medicines?.[0]?.startDate) ||
+          new Date().toISOString(); // fallback for records without dates
       };
-      
+
       return new Date(getDate(b)).getTime() - new Date(getDate(a)).getTime();
     });
   };
 
-  
+
   const handleDelete = async (recordId: string) => {
     const auth = getAuth();
     const user = auth.currentUser;
@@ -72,7 +72,7 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
     }
     try {
       const token = await user.getIdToken();
-      const response = await fetch(`https://curo-156q.onrender.com/api/health-records/${recordId}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/health-records/${recordId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -97,7 +97,7 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
   const handleUpdate = async (updatedRecord: Record) => {
     const auth = getAuth();
     const user = auth.currentUser;
-    
+
     if (!user) {
       console.error("No logged-in user");
       return;
@@ -105,7 +105,7 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
 
     try {
       const token = await user.getIdToken();
-      const response = await fetch(`https://curo-156q.onrender.com/api/health-records/${updatedRecord.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/health-records/${updatedRecord.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -121,9 +121,9 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
       console.log('Server response:', result); // 
 
       if (response.ok) {
-        setRecords(prevRecords => 
-          sortRecordsByDate(prevRecords.map(record => 
-            record.id === updatedRecord.id 
+        setRecords(prevRecords =>
+          sortRecordsByDate(prevRecords.map(record =>
+            record.id === updatedRecord.id
               ? { ...updatedRecord } // Keep the existing record with updates
               : record
           ))
@@ -132,7 +132,7 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
     } catch (error) {
       console.error("Error updating record:", error);
     }
-    
+
     setEditDialogOpen(false);
     setRecordToEdit(null);
   };
@@ -183,7 +183,7 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
               <p><span className="font-medium">Value:</span> {test.value}</p>
               <p>
                 <span className="font-medium">Result:</span>
-                <Badge 
+                <Badge
                   variant={test.result === 'normal' ? 'default' : 'destructive'}
                   className="ml-2"
                 >
@@ -301,7 +301,7 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => {
                     setRecordToDelete(record.id);
@@ -318,10 +318,10 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
             {renderDetails(record)}
             {record.uploaded_file_url && (
               <div className="mt-4 pt-4 border-t">
-                <a 
-                  href={record.uploaded_file_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={record.uploaded_file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-blue-500 hover:text-blue-700 underline flex items-center gap-2"
                 >
                   <FileText className="h-4 w-4" />
@@ -336,14 +336,14 @@ export default function RecordsList({ records, setRecords }: RecordsListProps) {
         <Pagination className="mt-6">
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious 
+              <PaginationPrevious
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
               />
             </PaginationItem>
             {renderPaginationItems()}
             <PaginationItem>
-              <PaginationNext 
+              <PaginationNext
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
               />

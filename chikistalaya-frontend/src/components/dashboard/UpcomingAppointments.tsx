@@ -25,7 +25,7 @@ export default function UpcomingAppointments() {
         const token = await user.getIdToken();
 
         // 2) Call your backend route
-        const response = await fetch("https://curo-156q.onrender.com/api/appointments/recent", {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appointments/recent`, {
           headers: {
             // Pass the Firebase token in the Authorization header
             Authorization: `Bearer ${token}`
@@ -43,7 +43,7 @@ export default function UpcomingAppointments() {
         //   message: "Fetched 3 most recent appointments",
         //   data: [ { id, user_id, provider_id, start_time, notes, ... }, ...]
         // }
-        
+
         setAppointments(data.data || []);
         console.log(data.data);
       } catch (err: any) {

@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 import PatientForm from './PatientForm';
 import { Button } from '../ui/button';
@@ -22,10 +22,10 @@ export default function PatientSelector({ onPatientSelected, providerid }: Patie
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const auth = getAuth();
       const user = auth.currentUser;
-      
+
       if (!user?.email) {
         setError('No authenticated user found');
         setDebugInfo({ stage: 'auth-check', error: 'No user email' });
@@ -33,11 +33,11 @@ export default function PatientSelector({ onPatientSelected, providerid }: Patie
       }
 
       console.log('Checking patient with email:', user.email);
-      
+
       const token = await user.getIdToken();
       console.log('Got auth token');
 
-      const checkUrl = `https://curo-156q.onrender.com/api/appointments/patients/check?email=${encodeURIComponent(user.email)}`;
+      const checkUrl = `${import.meta.env.VITE_BACKEND_URL}/api/appointments/patients/check?email=${encodeURIComponent(user.email)}`;
       console.log('Checking URL:', checkUrl);
 
       const response = await fetch(checkUrl, {
@@ -46,18 +46,18 @@ export default function PatientSelector({ onPatientSelected, providerid }: Patie
           'Content-Type': 'application/json'
         }
       });
-      
+
       console.log('Response status:', response.status);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error:', errorText);
         throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
-      
+
       const data = await response.json();
       console.log('Patient check response:', data);
-      
+
       if (data.exists) {
         console.log('Patient exists, ID:', data.patientId);
         onPatientSelected(data.patientId);
@@ -82,17 +82,17 @@ export default function PatientSelector({ onPatientSelected, providerid }: Patie
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const auth = getAuth();
       const user = auth.currentUser;
       if (!user) {
         throw new Error('No authenticated user');
       }
-      
+
       const token = await user.getIdToken();
       console.log('Creating patient with provider ID:', providerid);
 
-      const response = await fetch(`https://curo-156q.onrender.com/api/appointments/patients?providerid=${providerid}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appointments/patients?providerid=${providerid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export default function PatientSelector({ onPatientSelected, providerid }: Patie
         },
         body: JSON.stringify(patientData),
       });
-      
+
       const responseText = await response.text();
       console.log('Create patient response:', responseText);
 
@@ -122,7 +122,7 @@ export default function PatientSelector({ onPatientSelected, providerid }: Patie
         }
         throw new Error(errorMessage);
       }
-      
+
       const data = JSON.parse(responseText);
       console.log('Patient created successfully:', data);
       onPatientSelected(data.data.id);

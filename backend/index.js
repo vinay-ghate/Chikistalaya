@@ -50,7 +50,7 @@ async function searchPharmEasy(searchTerm) {
       price: product.salePriceDecimal,
       availability: product.productAvailabilityFlags.isAvailable,
       image: product.image,
-      url: "https://pharmeasy.in/online-medicine-order/"+product.slug
+      url: "https://pharmeasy.in/online-medicine-order/" + product.slug
     }));
   } catch (error) {
     // Improved error logging
@@ -78,7 +78,7 @@ async function searchOneMg(searchTerm) {
 
     let decompressedData;
     const contentEncoding = response.headers["content-encoding"];
-    
+
     if (contentEncoding?.includes("gzip")) {
       decompressedData = await gunzip(response.data);
     } else {
@@ -96,7 +96,7 @@ async function searchOneMg(searchTerm) {
             price: product.discounted_price,
             availability: true,
             image: product.cropped_image,
-            url: "https://www.1mg.com"+product.url
+            url: "https://www.1mg.com" + product.url
           });
         });
       }
@@ -121,15 +121,15 @@ async function searchApollo(searchTerm) {
     };
 
     const response = await axios.post(APOLLO_BASE_URL, payload, {
-      headers: { ...HEADERS, "Content-Type": "application/json", "Authorization": "Oeu324WMvfKOj5KMJh2Lkf00eW1" }
+      headers: { ...HEADERS, "Content-Type": "application/json", "Authorization": process.env.APOLLO_AUTH_TOKEN || "Oeu324WMvfKOj5KMJh2Lkf00eW1" }
     });
 
     return response.data.data.products.map(product => ({
       name: product.name,
       price: product.specialPrice || product.price,
       availability: product.status === "AVAILABLE",
-      image: "https://images.apollo247.in/pub/media"+product.thumbnail,
-      url: "https://www.apollopharmacy.in/search-medicines/"+encodeURIComponent(product.name)
+      image: "https://images.apollo247.in/pub/media" + product.thumbnail,
+      url: "https://www.apollopharmacy.in/search-medicines/" + encodeURIComponent(product.name)
 
     }));
   } catch (error) {
@@ -143,18 +143,23 @@ async function searchApollo(searchTerm) {
 
 const app = express();
 
-const allowedOrigins = ['https://curo-flame.vercel.app','http://localhost:5173'];
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175'
+];
 
 // CORS options
 const corsOptions = {
   origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);  // Allow the origin in the response
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));  // Disallow the origin
+      console.log("Blocked by CORS:", origin);
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  optionsSuccessStatus: 200  // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200
 };
 
 // Use cors middleware with options
@@ -162,13 +167,36 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Middleware to verify Firebase token
+import { isFirebaseInitialized } from './firebaseAdmin.js';
+
 const authenticateUser = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split("Bearer ")[1];
     if (!token) {
       return res.status(401).json({ error: "No token provided" });
     }
-    if (token === "Testing-JWT-Token") {
+
+    // Bypass if testing token OR if Firebase Admin is not initialized (Dev Mode fallback)
+    if (token === "Testing-JWT-Token" || !isFirebaseInitialized) {
+      if (!isFirebaseInitialized) {
+        console.warn("Bypassing auth verification because Firebase Admin is not initialized.");
+        // Try to decode the token to get the real UID (insecurely, for dev only)
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          const payload = JSON.parse(jsonPayload);
+          req.user = { uid: payload.user_id || payload.sub, email: payload.email };
+          console.log("Decoded UID from token (unverified):", req.user.uid);
+        } catch (e) {
+          console.warn("Failed to decode token, falling back to test user:", e);
+          req.user = { uid: "test-user-uid", email: "test@example.com" };
+        }
+      } else {
+        req.user = { uid: "test-user-uid", email: "test@example.com" };
+      }
       next();
       return;
     }
@@ -177,6 +205,7 @@ const authenticateUser = async (req, res, next) => {
     req.user = decodedToken;
     next();
   } catch (error) {
+    console.error("Auth error:", error);
     res.status(401).json({ error: "Invalid token" });
   }
 };
@@ -186,25 +215,31 @@ app.post("/api/auth/register", async (req, res) => {
   try {
     const { uid, email, name } = req.body;
 
-    // Update user profile in Firebase
-    await admin.auth().updateUser(uid, {
-      displayName: name,
-    });
+    // Update user profile in Firebase ONLY if initialized
+    if (isFirebaseInitialized) {
+      try {
+        await admin.auth().updateUser(uid, {
+          displayName: name,
+        });
+      } catch (e) {
+        console.error("Failed to update Firebase user profile:", e);
+      }
+    }
 
-    // Now save the user to Supabase
+    // Now save the user to Supabase using upsert to handle existing users
     const { data, error } = await supabase
       .from("users")
-      .insert([{ uid, email, name }]);
+      .upsert([{ uid, email, name }], { onConflict: 'uid' });
 
     if (error) {
-      console.error("Supabase insert error:", error);
+      console.error("Supabase upsert error:", error);
       return res.status(500).json({ error: error.message });
     }
 
     res
       .status(200)
-      .json({ message: "User registered successfully", data: req.body });
-    console.log("User registered successfully in Supabase");
+      .json({ message: "User registered/synced successfully", data: req.body });
+    console.log("User registered/synced successfully in Supabase");
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -272,19 +307,19 @@ app.get("/api/maps/nearby-hospitals", authenticateUser, async (req, res) => {
     if (!lat || !lng) {
       return res.status(400).json({ error: "Missing lat or lng query params" });
     }
- 
+
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!googleApiKey) {
       return res.status(500).json({ error: "Missing Google Maps API key" });
     }
- 
+
     // Construct the Nearby Search URL
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=hospital&key=${googleApiKey}`;
- 
+
     const response = await fetch(url);
     const data = await response.json();
     console.log("Nearby hospitals data:", data);
- 
+
     // Send the entire response or transform it as needed
     res.json(data);
   } catch (error) {
@@ -298,19 +333,19 @@ app.get("/api/maps/nearby-lab", authenticateUser, async (req, res) => {
     if (!lat || !lng) {
       return res.status(400).json({ error: "Missing lat or lng query params" });
     }
- 
+
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!googleApiKey) {
       return res.status(500).json({ error: "Missing Google Maps API key" });
     }
- 
+
     // Construct the Nearby Search URL
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=any&keyword=medical-lab&key=${googleApiKey}`;
- 
+
     const response = await fetch(url);
     const data = await response.json();
     console.log("Nearby hospitals data:", data);
- 
+
     // Send the entire response or transform it as needed
     res.json(data);
   } catch (error) {
@@ -324,18 +359,18 @@ app.get("/api/maps/nearby-doctor", authenticateUser, async (req, res) => {
     if (!lat || !lng) {
       return res.status(400).json({ error: "Missing lat or lng query params" });
     }
- 
+
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!googleApiKey) {
       return res.status(500).json({ error: "Missing Google Maps API key" });
     }
- 
+
     // Construct the Nearby Search URL
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=doctor&keyword=doctor&key=${googleApiKey}`
     const response = await fetch(url);
     const data = await response.json();
     console.log("Nearby doctor data:", data);
- 
+
     // Send the entire response or transform it as needed
     res.json(data);
   } catch (error) {
@@ -343,25 +378,25 @@ app.get("/api/maps/nearby-doctor", authenticateUser, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
- 
+
 app.get("/api/maps/nearby-doctor-type", authenticateUser, async (req, res) => {
   try {
-    const { lat, lng, radius = 5000,keyword } = req.query;
+    const { lat, lng, radius = 5000, keyword } = req.query;
     if (!lat || !lng) {
       return res.status(400).json({ error: "Missing lat or lng query params" });
     }
- 
+
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!googleApiKey) {
       return res.status(500).json({ error: "Missing Google Maps API key" });
     }
- 
+
     // Construct the Nearby Search URL
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=doctor&keyword=${keyword}&key=${googleApiKey}`
     const response = await fetch(url);
     const data = await response.json();
     console.log("Nearby doctor data:", data);
- 
+
     // Send the entire response or transform it as needed
     res.json(data);
   } catch (error) {
@@ -375,19 +410,19 @@ app.get("/api/maps/nearby-pharmacy", authenticateUser, async (req, res) => {
     if (!lat || !lng) {
       return res.status(400).json({ error: "Missing lat or lng query params" });
     }
- 
+
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!googleApiKey) {
       return res.status(500).json({ error: "Missing Google Maps API key" });
     }
- 
+
     // Construct the Nearby Search URL
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=pharmacy&key=${googleApiKey}`;
- 
+
     const response = await fetch(url);
     const data = await response.json();
     console.log("Nearby pharmacy data:", data);
- 
+
     // Send the entire response or transform it as needed
     res.json(data);
   } catch (error) {
@@ -748,9 +783,9 @@ app.get("/api/medicine-search/", authenticateUser, async (req, res) => {
     const { query } = req.query;
     console.log("hello");
     if (!query) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Search query is required" 
+      return res.status(400).json({
+        success: false,
+        error: "Search query is required"
       });
     }
 
@@ -803,16 +838,16 @@ app.get("/api/user-profile", authenticateUser, async (req, res) => {
       .select(" name, email, blood_group, allergies, heart_rate, blood_pressure, height, weight, date_of_birth")
       .eq("uid", uid)
       .single(); // Use .single() to get only one record if `uid` is unique
- 
+
     if (userError) {
       console.error("Error fetching user:", userError);
       return res.status(500).json({ error: "Failed to fetch user profile." });
     }
- 
+
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
- 
+
     return res.status(200).json({ user });
   } catch (err) {
     console.error("Error in /api/user-profile:", err);
@@ -832,7 +867,7 @@ app.post("/api/update-profile", authenticateUser, async (req, res) => {
       weight,
       dob,
     } = req.body; // Destructure the fields from the request body
- 
+
     // Update user profile in the database
     const { data, error } = await supabase
       .from("users")
@@ -846,14 +881,14 @@ app.post("/api/update-profile", authenticateUser, async (req, res) => {
         dob,
       })
       .eq("uid", uid);
- 
+
     if (error) {
       console.error("Error updating user profile:", error);
       return res.status(500).json({ error: "Failed to update profile." });
     }
- 
-    
- 
+
+
+
     return res.status(200).json({ message: "Profile updated successfully.", data });
   } catch (err) {
     console.error("Error in /api/update-profile:", err);
@@ -868,12 +903,12 @@ app.get("/api/fetch-user", authenticateUser, async (req, res) => {
       .from("users")
       .select("*")
       .eq("uid", uid);
- 
+
     // Use error from the query, and check if data is empty or null
     if (error || !data) {
       return res.status(404).json({ error: "User not found" });
     }
- 
+
     console.log(data); // Log the fetched data
     res.status(200).json({ records: data }); // Send the fetched data as the response
   } catch (err) {
@@ -881,9 +916,9 @@ app.get("/api/fetch-user", authenticateUser, async (req, res) => {
     res.status(500).json({ error: err.message }); // Send the error message in the response
   }
 });
- 
 
- 
+
+
 
 // Protected route example
 app.get("/api/protected", authenticateUser, (req, res) => {

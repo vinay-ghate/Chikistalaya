@@ -25,7 +25,7 @@ export default function MedicinePricePage() {
         try {
             const token = await user.getIdToken();
             const response = await fetch(
-                `https://curo-156q.onrender.com/api/medicine-search?query=${encodeURIComponent(query)}`,
+                `${import.meta.env.VITE_BACKEND_URL}/api/medicine-search?query=${encodeURIComponent(query)}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`

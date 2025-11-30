@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 
-export default function CuroLandingPage() {
+export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
 
   const { scrollYProgress } = useScroll();
@@ -89,44 +89,10 @@ export default function CuroLandingPage() {
     }
   ];
 
-  const team = [
-    {
-      name: "Animish Agrahari",
-      role: "Full Stack Developer",
-      description: "Pixel pusher by day, bug hunter by night.",
-      image: "https://media.licdn.com/dms/image/v2/D5603AQHdvUmV5Pjvcg/profile-displayphoto-shrink_400_400/B56ZSNMF0UHEAg-/0/1737535546012?e=1743033600&v=beta&t=QJe5hiOmTg3az3Z_s3DWEm_l3SX0QjHAgPbqTJ98L20"
-    },
-    {
-      name: "Dhairya Luthra",
-      role: "Full Stack Developer",
-      description: "Made this app during a caffeine high. Now debugging it during a caffeine crash.",
-      image: "https://media.licdn.com/dms/image/v2/C4D03AQEf_NU1dheWog/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1645523233347?e=1743033600&v=beta&t=Wtz9fqVSGvDX8WSIfCjCTLC9JkTvRB8Yhu5Lzd0wn_g"
-    },
-    {
-      name: "Aariv Walia",
-      role: "Full Stack Developer",
-      description: "The Ctrl+C, Ctrl+V wizard youve been looking for.",
-      image: "https://media.licdn.com/dms/image/v2/D5603AQF2EmmA7YpJZw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1730619211520?e=1743033600&v=beta&t=GyWDb2WEhLIdqHF1CuB1GUoz2WVvJ_EjfojqP7_jFjc"
-    },
-    {
-      name: "Shreejeet Mishra",
-      role: "Full Stack Developer",
-      description: "Thinks in binary, dreams in color",
-      image: "https://i.ibb.co/MNcx5Vw/shreejeet.jpg"
-    },
-  ];
-
   const handleScrollToFeatures = () => {
     const featuresSection = document.getElementById('features-section');
     if (featuresSection) {
       featuresSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleAboutUs = () => {
-    const aboutUsSection = document.getElementById('about-us-section');
-    if (aboutUsSection) {
-      aboutUsSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -256,7 +222,7 @@ export default function CuroLandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Experience healthcare reimagined with AI-powered assistance, secure medical records storage, and integrated appointment booking. From finding the best medicine prices to connecting with healthcare providers, Curo is your all-in-one healthcare solution.
+            Experience healthcare simplified with AI guidance, secure ABHA-linked records, and easy appointments. From medicine prices to doctor connections, Chikistalaya is your all-in-one solution.
           </motion.p>
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"

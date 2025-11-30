@@ -18,7 +18,7 @@ async function loadPdf(filePath) {
 async function runIngestion() {
   // 1) Load your PDF
   const pdfPath =
-    "D:\\CodingPlayground\\webdev\\Curo-try-1\\backend\\ingest\\Medical_book_1.pdf";
+    "D:\\Programming\\GitRepos\\Chikistalaya\\backend\\ingest\\Medical_book_1.pdf";
   const text = await loadPdf(pdfPath);
 
   // 2) Split into chunks
@@ -34,7 +34,7 @@ async function runIngestion() {
   });
 
   // 4) Get your Pinecone index
-  const pineconeIndex = pinecone.Index("curo-2");
+  const pineconeIndex = pinecone.Index("-2");
 
   // 5) Store docs into Pinecone
   await PineconeStore.fromDocuments(docs, model, {

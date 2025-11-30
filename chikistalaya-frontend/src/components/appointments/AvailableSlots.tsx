@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -33,7 +33,7 @@ export default function AvailableSlots({ providerId, startDate, onSelectSlot }: 
           return;
         }
         const token = await user.getIdToken();
-        const response = await fetch(`https://curo-156q.onrender.com/api/appointments/slots?startDate=${startDate}&days=7&providerId=${providerId}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appointments/slots?startDate=${startDate}&days=7&providerId=${providerId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           }

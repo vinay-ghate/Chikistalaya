@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import CuroLandingPage from "./pages/landing";
+import { Toaster } from "react-hot-toast";
+import LandingPage from "./pages/landing";
 import AuthPage from "./pages/signin";
 import Dashboard from "./pages/Dashboard";
 import HealthRecords from "./pages/HealthRecords";
@@ -16,7 +17,7 @@ function App() {
     <>
       <Router>
         <Routes>
-          <Route path="/" element={<CuroLandingPage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/userdashboard/:uid" element={<Dashboard />} />
           <Route path="/healthrecords/:uid" element={<HealthRecords />} />
@@ -29,7 +30,7 @@ function App() {
           <Route path="/user-profile/:uid" element={<UserProfilePage />} />
         </Routes>
       </Router>
-
+      <Toaster />
     </>
   )
 }

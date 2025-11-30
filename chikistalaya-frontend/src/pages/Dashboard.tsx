@@ -48,7 +48,7 @@ export default function Dashboard() {
         throw new Error("No token provided");
       }
 
-      const response = await fetch("https://curo-156q.onrender.com/api/fetch-user", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fetch-user`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -123,7 +123,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-4 relative">
             {/* Search Input */}
             <div className="relative">
-              <Input type="search" placeholder="Search..." className="pl-10 w-64 border-purple-200 focus:border-purple-500 text-purple-900 placeholder:text-purple-400 bg-white/50" />
+              <Input type="search" placeholder="Search..." className="pl-10 w-64 border-purple-300 focus:border-purple-500 text-purple-950 placeholder:text-purple-700 bg-white" />
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
 

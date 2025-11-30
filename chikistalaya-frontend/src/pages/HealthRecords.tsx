@@ -36,7 +36,7 @@ export default function HealthRecord() {
       return;
     }
     const token = await user.getIdToken();
-    const response = await fetch("https://curo-156q.onrender.com/api/health-records", {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/health-records`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

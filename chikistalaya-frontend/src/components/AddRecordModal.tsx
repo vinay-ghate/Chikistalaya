@@ -12,7 +12,7 @@ import { getAuth } from "firebase/auth";
 interface AddRecordModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onRecordAdded: () => void; 
+  onRecordAdded: () => void;
 }
 
 export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRecordModalProps) {
@@ -24,11 +24,11 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const recordDetails = {
-        medicines: medicines || [], // Default to empty array
-        tests: tests || [],         // Default to empty array
-        ...formData,                // Include additional fields
-      };
-  
+      medicines: medicines || [], // Default to empty array
+      tests: tests || [],         // Default to empty array
+      ...formData,                // Include additional fields
+    };
+
     const formPayload = new FormData();
     formPayload.append("type", recordType);
     formPayload.append("details", JSON.stringify(recordDetails)); // Include medicines/tests
@@ -36,37 +36,37 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
       formPayload.append("file", formData.file);
     }
     console.log(formPayload);
-    
-    try{
-        const auth = getAuth();
-        const user = auth.currentUser;
-        if (!user) {
-            throw new Error("No logged-in user. Please sign in first.");
-        }
 
-        const token = await user.getIdToken();
-        const response = await fetch("https://curo-156q.onrender.com/api/health-records", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: formPayload,
-          });
-          console.log(formPayload);   
-          
-        
-          const result = await response.json();
-          if (response.ok) {
-            console.log("Record added successfully:", result);
-            onRecordAdded(); // Call the callback function
-            onClose();
-          } else {
-            console.error("Error adding record:", result.error);
-          }
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No logged-in user. Please sign in first.");
+      }
+
+      const token = await user.getIdToken();
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/health-records`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formPayload,
+      });
+      console.log(formPayload);
+
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("Record added successfully:", result);
+        onRecordAdded(); // Call the callback function
         onClose();
+      } else {
+        console.error("Error adding record:", result.error);
+      }
+      onClose();
     }
-    catch(error){
-        console.error("Error:", error);
+    catch (error) {
+      console.error("Error:", error);
 
     }
   };
@@ -115,8 +115,8 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`testParameter-${index}`}>Test Parameter</Label>
-                  <Input 
-                    id={`testParameter-${index}`} 
+                  <Input
+                    id={`testParameter-${index}`}
                     value={test.parameter}
                     onChange={(e) => updateTest(index, 'parameter', e.target.value)}
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -124,60 +124,57 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`testValue-${index}`}>Test Value</Label>
-                  <Input 
-                    id={`testValue-${index}`} 
+                  <Input
+                    id={`testValue-${index}`}
                     value={test.value}
                     onChange={(e) => updateTest(index, 'value', e.target.value)}
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
-                  <div className="space-y-2">
-                    <Label>Result</Label>
-                    <RadioGroup 
-                      value={test.result}
-                      onValueChange={(value) => updateTest(index, 'result', value)}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-  <RadioGroupItem
-    value="normal"
-    id={`normal-${index}`}
-    className={`${
-      test.result === "normal" ? "bg-blue-100 text-white border-blue-600" : "bg-white text-blue-600 border-blue-600"
-    } border-2 focus:ring-blue-500 rounded-full w-6 h-6 flex items-center justify-center`}
-  />
-  <Label htmlFor={`normal-${index}`} className="cursor-pointer">
-    Normal
-  </Label>
-</div>
-<div className="flex items-center space-x-2">
-  <RadioGroupItem
-    value="increased"
-    id={`increased-${index}`}
-    className={`${
-      test.result === "increased" ? "bg-blue-100 text-white border-blue-600" : "bg-white text-blue-600 border-blue-600"
-    } border-2 focus:ring-blue-500 rounded-full w-6 h-6 flex items-center justify-center`}
-  />
-  <Label htmlFor={`increased-${index}`} className="cursor-pointer">
-    Increased
-  </Label>
-</div>
-<div className="flex items-center space-x-2">
-  <RadioGroupItem
-    value="decreased"
-    id={`decreased-${index}`}
-    className={`${
-      test.result === "decreased" ? "bg-blue-100 text-white border-blue-600" : "bg-white text-blue-600 border-blue-600"
-    } border-2 focus:ring-blue-500 rounded-full w-6 h-6 flex items-center justify-center`}
-  />
-  <Label htmlFor={`decreased-${index}`} className="cursor-pointer">
-    Decreased
-  </Label>
-</div>
-                      
-                    </RadioGroup>
-                  </div>
+                <div className="space-y-2">
+                  <Label>Result</Label>
+                  <RadioGroup
+                    value={test.result}
+                    onValueChange={(value) => updateTest(index, 'result', value)}
+                    className="flex space-x-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value="normal"
+                        id={`normal-${index}`}
+                        className={`${test.result === "normal" ? "bg-blue-100 text-white border-blue-600" : "bg-white text-blue-600 border-blue-600"
+                          } border-2 focus:ring-blue-500 rounded-full w-6 h-6 flex items-center justify-center`}
+                      />
+                      <Label htmlFor={`normal-${index}`} className="cursor-pointer">
+                        Normal
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value="increased"
+                        id={`increased-${index}`}
+                        className={`${test.result === "increased" ? "bg-blue-100 text-white border-blue-600" : "bg-white text-blue-600 border-blue-600"
+                          } border-2 focus:ring-blue-500 rounded-full w-6 h-6 flex items-center justify-center`}
+                      />
+                      <Label htmlFor={`increased-${index}`} className="cursor-pointer">
+                        Increased
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value="decreased"
+                        id={`decreased-${index}`}
+                        className={`${test.result === "decreased" ? "bg-blue-100 text-white border-blue-600" : "bg-white text-blue-600 border-blue-600"
+                          } border-2 focus:ring-blue-500 rounded-full w-6 h-6 flex items-center justify-center`}
+                      />
+                      <Label htmlFor={`decreased-${index}`} className="cursor-pointer">
+                        Decreased
+                      </Label>
+                    </div>
+
+                  </RadioGroup>
                 </div>
+              </div>
             ))}
             <Button type="button" onClick={addTest} className="mt-4 bg-blue-600 text-white hover:bg-blue-700">
               <Plus className="mr-2 h-4 w-4" /> Add Another Test
@@ -199,8 +196,8 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`medicineName-${index}`}>Medicine Name</Label>
-                  <Input 
-                    id={`medicineName-${index}`} 
+                  <Input
+                    id={`medicineName-${index}`}
                     value={medicine.name}
                     onChange={(e) => updateMedicine(index, 'name', e.target.value)}
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -208,7 +205,7 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`frequency-${index}`}>Frequency</Label>
-                  <Select 
+                  <Select
                     value={medicine.frequency}
                     onValueChange={(value) => updateMedicine(index, 'frequency', value)}
                   >
@@ -225,9 +222,9 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                 {medicine.frequency === 'daily' && (
                   <div className="space-y-2">
                     <Label htmlFor={`timing-${index}`}>Times per day</Label>
-                    <Input 
-                      id={`timing-${index}`} 
-                      type="number" 
+                    <Input
+                      id={`timing-${index}`}
+                      type="number"
                       min="1"
                       value={medicine.timing}
                       onChange={(e) => updateMedicine(index, 'timing', e.target.value)}
@@ -240,9 +237,9 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                     <Label>Days of the week</Label>
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
                       <div key={day} className="flex items-center space-x-2">
-                        <input 
-                          type="checkbox" 
-                          id={`${day}-${index}`} 
+                        <input
+                          type="checkbox"
+                          id={`${day}-${index}`}
                           checked={medicine.days.includes(day)}
                           onChange={(e) => {
                             const updatedDays = e.target.checked
@@ -259,9 +256,9 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                 )}
                 <div className="space-y-2">
                   <Label htmlFor={`startDate-${index}`}>Start Date</Label>
-                  <Input 
-                    id={`startDate-${index}`} 
-                    type="date" 
+                  <Input
+                    id={`startDate-${index}`}
+                    type="date"
                     value={medicine.startDate}
                     onChange={(e) => updateMedicine(index, 'startDate', e.target.value)}
                     className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -269,9 +266,9 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`duration-${index}`}>Duration (days)</Label>
-                  <Input 
-                    id={`duration-${index}`} 
-                    type="number" 
+                  <Input
+                    id={`duration-${index}`}
+                    type="number"
                     min="1"
                     value={medicine.duration}
                     onChange={(e) => updateMedicine(index, 'duration', e.target.value)}
@@ -285,8 +282,8 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
             </Button>
             <div className="space-y-2 mt-4">
               <Label htmlFor="doctorName">Doctor's Name</Label>
-              <Input 
-                id="doctorName" 
+              <Input
+                id="doctorName"
                 value={formData.doctorName || ''}
                 onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
                 className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -294,8 +291,8 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
             </div>
             <div className="space-y-2">
               <Label htmlFor="diagnosis">Doctor's Diagnosis</Label>
-              <Textarea 
-                id="diagnosis" 
+              <Textarea
+                id="diagnosis"
                 value={formData.diagnosis || ''}
                 onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
                 className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -308,8 +305,8 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
           <>
             <div className="space-y-2">
               <Label htmlFor="doctorName">Doctor's Name</Label>
-              <Input 
-                id="doctorName" 
+              <Input
+                id="doctorName"
                 value={formData.doctorName || ''}
                 onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
                 className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -317,9 +314,9 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
             </div>
             <div className="space-y-2">
               <Label htmlFor="consultationDate">Consultation Date</Label>
-              <Input 
-                id="consultationDate" 
-                type="date" 
+              <Input
+                id="consultationDate"
+                type="date"
                 value={formData.consultationDate || ''}
                 onChange={(e) => setFormData({ ...formData, consultationDate: e.target.value })}
                 className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -327,8 +324,8 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
             </div>
             <div className="space-y-2">
               <Label htmlFor="doctorNote">Doctor's Note</Label>
-              <Textarea 
-                id="doctorNote" 
+              <Textarea
+                id="doctorNote"
                 value={formData.doctorNote || ''}
                 onChange={(e) => setFormData({ ...formData, doctorNote: e.target.value })}
                 className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -341,8 +338,8 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
           <>
             <div className="space-y-2">
               <Label htmlFor="surgeryDetails">Surgery Details</Label>
-              <Textarea 
-                id="surgeryDetails" 
+              <Textarea
+                id="surgeryDetails"
                 value={formData.surgeryDetails || ''}
                 onChange={(e) => setFormData({ ...formData, surgeryDetails: e.target.value })}
                 className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -350,9 +347,9 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
             </div>
             <div className="space-y-2">
               <Label htmlFor="surgeryDate">Surgery Date</Label>
-              <Input 
-                id="surgeryDate" 
-                type="date" 
+              <Input
+                id="surgeryDate"
+                type="date"
                 value={formData.surgeryDate || ''}
                 onChange={(e) => setFormData({ ...formData, surgeryDate: e.target.value })}
                 className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -391,9 +388,9 @@ export default function AddRecordModal({ isOpen, onClose, onRecordAdded }: AddRe
           </ScrollArea>
           <div className="space-y-2">
             <Label htmlFor="file" className="text-gray-700">Upload File (optional)</Label>
-            <Input 
-              id="file" 
-              type="file" 
+            <Input
+              id="file"
+              type="file"
               onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] })}
               className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />

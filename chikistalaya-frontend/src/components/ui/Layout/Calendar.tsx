@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import './Calendar.css';
 import { useParams } from 'react-router-dom';
@@ -25,7 +25,7 @@ export default function CustomCalendar() {
 
     const fetchAppointments = async () => {
         console.log(uid); // Replace with the actual user ID
-        const url = `https://curo-156q.onrender.com/api/appointments-fetch?user_id=${uid}`;
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/appointments-fetch?user_id=${uid}`;
 
         try {
             console.log("Fetching appointments from the API...");
@@ -85,7 +85,7 @@ export default function CustomCalendar() {
         console.log("Saving new appointment:", newAppointment);
 
         try {
-            const response = await fetch("https://curo-156q.onrender.com/api/appointments-save", {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appointments-save`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

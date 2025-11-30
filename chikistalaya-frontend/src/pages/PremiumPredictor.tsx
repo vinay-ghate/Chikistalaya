@@ -111,7 +111,7 @@ export default function PremiumPredictor() {
       }
       const token = await user.getIdToken();
 
-      const response = await fetch('https://curo-156q.onrender.com/api/premium-predictor/predict', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/premium-predictor/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
