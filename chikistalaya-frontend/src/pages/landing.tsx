@@ -174,21 +174,6 @@ export default function LandingPage() {
               >
                 <motion.li variants={itemVariants}>
 
-                  <a
-                    href="https://god.gw.postman.com/run-collection/26636117-04056783-ab16-4d33-b379-2a217fcdaea8?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D26636117-04056783-ab16-4d33-b379-2a217fcdaea8%26entityType%3Dcollection%26workspaceId%3D70af78ac-63cc-40c4-8359-5913c8de1349"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: "inline-block", textDecoration: "none" }}
-                  >
-                    <img
-                      src="https://run.pstmn.io/button.svg"
-                      alt="Run in Postman"
-                      style={{ width: "128px", height: "32px" }}
-                    />
-                  </a>
-                </motion.li>
-                <motion.li variants={itemVariants}>
-
                   <button
                     onClick={handleScrollToFeatures}
                     className="block py-2 text-gray-300 hover:text-purple-400 w-full text-left"
