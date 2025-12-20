@@ -22,6 +22,13 @@ The application is built using a modern tech stack:
 - **Nearby Services**: Locate hospitals, doctors, labs, and pharmacies near you.
 - **Premium Predictor**: Estimate insurance premiums based on health metrics.
 
+## Screenshot
+
+![](https://github.com/vinay-ghate/mediaAssets/blob/master/images/projectSnaps/Chikistalaya1.png)
+![](https://github.com/vinay-ghate/mediaAssets/blob/master/images/projectSnaps/Chikistalaya2.png)
+![](https://github.com/vinay-ghate/mediaAssets/blob/master/images/projectSnaps/Chikistalaya3.png)
+![](https://github.com/vinay-ghate/mediaAssets/blob/master/images/projectSnaps/Chikistalaya4.png)
+
 ## How to Run
 
 ### Prerequisites
